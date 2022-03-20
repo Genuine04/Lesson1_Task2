@@ -1,6 +1,9 @@
 package uz.pdp.task2.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.pdp.task2.entity.ProgrammingLang;
 import uz.pdp.task2.payload.ApiResponse;
@@ -19,8 +22,11 @@ public class ProgrammingLangService {
 
 
     //GET ALL
-    public List<ProgrammingLangDto> getAllProgrammingLanguage(){
-        return programmingLangRepo.findAll().stream().map(this::programmingLangDto).collect(Collectors.toList());
+    public List<ProgrammingLangDto> getAllProgrammingLanguage(int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProgrammingLang> all = programmingLangRepo.findAll(pageable);
+        List<ProgrammingLang> content = all.getContent();
+        return content.stream().map(this::programmingLangDto).collect(Collectors.toList());
     }
 
 

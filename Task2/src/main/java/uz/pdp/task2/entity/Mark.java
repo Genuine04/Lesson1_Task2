@@ -21,5 +21,5 @@ public class Mark {
     private Integer marksRate;
 
     @ManyToMany
-    private Set<Task> task;
+    private Set<Task> tasks;
 }

@@ -18,37 +18,43 @@ import java.util.stream.Collectors;
 @Service
 public class TaskService {
 
-
     @Autowired
     TaskRepo taskRepo;
 
 
     //GET ALL
-//    public List<TaskDto> getAllTaskDtos(){
-//        return taskRepo.findAll().stream().map()
-//    }
+    public List<TaskDto> getAllTaskDtos(){
+        return taskRepo.findAll().stream().map(this::taskDto).collect(Collectors.toList());
+    }
 
 
     //GET BY ID
+    public TaskDto getTaskDtoById(Integer id){
+        Optional<Task> optionalTask = taskRepo.findById(id);
+        return optionalTask.map(this::taskDto).orElse(null);
+    }
 
 
     //POST
     public ApiResponse postTask(TaskDto taskDto){
-      return null;
+        Task save = taskRepo.save(task(taskDto));
+        return new ApiResponse("Saved successfully", true);
     }
 
 
     //PUT
-//    public ApiResponse putTask(TaskDto taskDto, Integer id){
-//        Optional<Task> optionalTask = taskRepo.findById(id);
-//        if (!optionalTask.isPresent())
-//            return new ApiResponse("This task is not found", false);
-//        Task task = optionalTask.get();
-//        task.setId(taskDto.getId());
-//        task.setName(taskDto.getName());
-//        task.setUser(user(taskDto.getUserDtos()));
-//        task.setLang(programmingLang(taskDto.getLangDto()));
-//    }
+    public ApiResponse putTask(TaskDto taskDto, Integer id){
+        Optional<Task> optionalTask = taskRepo.findById(id);
+        if (!optionalTask.isPresent())
+            return new ApiResponse("This task is not found", false);
+        Task task = optionalTask.get();
+        task.setId(taskDto.getId());
+        task.setName(taskDto.getName());
+        task.setUser(taskDto.getUserDtos().stream().map(this::user).collect(Collectors.toSet()));
+        task.setLang(programmingLang(taskDto.getLangDto()));
+        Task save = taskRepo.save(task);
+        return new ApiResponse("Updated successfully", true);
+    }
 
 
     //DELETE
@@ -90,8 +96,18 @@ public class TaskService {
 
 
     //TASK DTO
-//    public TaskDto taskDto(Task task){
-//        return new TaskDto(task.getId(), task.getName(), programmingLangDto(task.getLang()));
-//    }
+    public TaskDto taskDto(Task task){
+        return new TaskDto(task.getId(), task.getName(),
+                task.getUser().stream().map(this::userDto).collect(Collectors.toSet()),
+                programmingLangDto(task.getLang()));
+    }
+
+
+    //TASK
+    public Task task(TaskDto taskDto){
+        return new Task(taskDto.getId(), taskDto.getName(),
+                taskDto.getUserDtos().stream().map(this::user).collect(Collectors.toSet()),
+                programmingLang(taskDto.getLangDto()));
+    }
 
 }

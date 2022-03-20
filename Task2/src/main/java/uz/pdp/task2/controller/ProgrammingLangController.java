@@ -5,13 +5,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uz.pdp.task2.payload.ApiResponse;
 import uz.pdp.task2.payload.ProgrammingLangDto;
 import uz.pdp.task2.service.ProgrammingLangService;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/programmingLang")
@@ -23,8 +27,9 @@ public class ProgrammingLangController {
 
 
     @GetMapping
-    public HttpEntity<?> getAll(){
-        List<ProgrammingLangDto> allProgrammingLanguage = programmingLangService.getAllProgrammingLanguage();
+    public HttpEntity<?> getAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
+        List<ProgrammingLangDto> allProgrammingLanguage = programmingLangService
+                .getAllProgrammingLanguage(page, size);
         return ResponseEntity.ok(allProgrammingLanguage);
     }
 
@@ -53,7 +58,20 @@ public class ProgrammingLangController {
     @DeleteMapping("/{id}")
     public HttpEntity<?> delete(@PathVariable Integer id){
         ApiResponse apiResponse = programmingLangService.deleteProgrammingLanguage(id);
-        return ResponseEntity.status(apiResponse.isSuccess()?202:404).body(apiResponse);
+        return ResponseEntity.status(apiResponse.isSuccess()?204:404).body(apiResponse);
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> xatolikniUshlabOlibOzimizniMessageniQaytarish(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 
 }
